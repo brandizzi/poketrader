@@ -1,0 +1,6 @@
+<form method="POST">
+ {% csrf_token %}
+ <input type="hidden" name="set" value="{{ set }}">
+ <input type="text" placeholder="Put a pokemon name here">
+ <input type="submit" value="Add">
+</form>

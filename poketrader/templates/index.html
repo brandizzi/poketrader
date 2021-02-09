@@ -11,32 +11,18 @@
 <div class="container text-center">
  <div class="row">
   <div class="col-sm">
-   <form method="POST">
-    {% csrf_token %}
-    <input type="hidden" name="set" value="1">
-    <input type="text" placeholder="Put a pokemon name here">
-    <input type="submit" value="Add">
-   </form>
+   {% include 'form.html' with set='1' %}
   </div>
   <div class="col-sm">
-   <form method="POST">
-    {% csrf_token %}
-    <input type="hidden" name="set" value="2">
-    <input type="text" placeholder="Put a pokemon name here">
-    <input type="submit" value="Add">
-   </form>
+   {% include 'form.html' with set='2' %}
   </div>
  </div>
  <div class="row">
   <div class="col-sm">
-   <div class="card">
-    Pokemons here
-   </div>
+   {% include 'list.html' %}
   </div>
   <div class="col-sm">
-   <div class="card">
-    Pokemons here
-   </div>
+   {% include 'list.html' %}
   </div>
  </div>
 </div>
