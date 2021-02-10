@@ -1,5 +1,9 @@
 <h4 class="text-center mt-2"><strong>Base experience:</strong> {{base_experience}}</h4>
 {% for pokemon in pokemon_list %}
+<form action="/remove" method="POST">
+{% csrf_token %}
+<input type="hidden" name="pokemon_set" value="{{pokemon_set}}">
+<input type="hidden" name="index" value="{{forloop.counter0}}">
 <div class="card mb-3">
  <div class="row d-flex justify-content-left">
    <div class="col-2">
@@ -9,7 +13,8 @@
     <h2 class="card-title">{{ pokemon.name }}</h2>
     <div class="card-text text-left"><strong>Base experience:</strong> {{ pokemon.base_experience }}</div>
    </div>
-    <button type="button" class="pokemon-remove btn-close pull-right" aria-label="Close" style="padding-right: 10px"></button>
+   <button type="submit" class="btn-close pokemon-remove" aria-label="Close"></button>
  </div>
 </div>
+</form>
 {% endfor %}

@@ -15,6 +15,10 @@ def reset(request):
     return handle_reset_post_request(request)
 
 
+def remove(request):
+    return handle_remove_post_request(request)
+
+
 def handle_index_post_request(request):
     session = request.session
     pokemon_list1, pokemon_list2 = get_pokemon_lists(session)
@@ -58,5 +62,15 @@ def handle_reset_post_request(request):
     pokemon_set = request.POST['pokemon_set']
     pokemon_list = session.get('pokemon_list' + pokemon_set, [])
     pokemon_list.clear()
+    session['pokemon_list' + pokemon_set] = pokemon_list
+    return HttpResponseRedirect('/')
+
+
+def handle_remove_post_request(request):
+    session = request.session
+    pokemon_set = request.POST['pokemon_set']
+    pokemon_list = session.get('pokemon_list' + pokemon_set, [])
+    index = int(request.POST['index'])
+    del pokemon_list[index]
     session['pokemon_list' + pokemon_set] = pokemon_list
     return HttpResponseRedirect('/')

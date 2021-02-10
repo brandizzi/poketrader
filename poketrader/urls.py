@@ -12,5 +12,6 @@ import poketrader.views
 
 urlpatterns = [
     path("", poketrader.views.index, name="index"),
-    path("reset", poketrader.views.reset, name="reset")
+    path("reset", poketrader.views.reset, name="reset"),
+    path("remove", poketrader.views.remove, name="remove")
 ]
