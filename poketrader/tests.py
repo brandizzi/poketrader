@@ -1,4 +1,6 @@
 from django.test import TestCase, RequestFactory
+from django.contrib.messages.middleware import MessageMiddleware
+from django.contrib import messages
 
 from .views import index, reset, remove
 
@@ -14,12 +16,18 @@ class ViewTestCase(TestCase):
 
         request.session = self.session
 
+        message_middleware = MessageMiddleware()
+        message_middleware.process_request(request)
+
         return request
 
     def _get_get_request(self, path, **data):
         request = self.factory.get(path, data)
 
         request.session = self.session
+
+        message_middleware = MessageMiddleware()
+        message_middleware.process_request(request)
 
         return request
 
@@ -46,6 +54,24 @@ class IndexTest(ViewTestCase):
                 'sprites/master/sprites/pokemon/25.png'
         })
 
+    def test_add_to_session_not_found(self):
+        request = self._get_post_request(
+            '/', pokemon_set='1', pokemon_name='agumon')
+
+        response = index(request)
+
+        self.assertEqual(response.status_code, 302)
+
+        list1 = request.session.get('pokemon_list1', [])
+        self.assertEqual(len(list1), 0)
+
+        messages_list = list(messages.get_messages(request))
+
+        self.assertEqual(len(messages_list), 1)
+        self.assertEqual(
+            messages_list[0].message,
+            "There is no such Pokémon called \"agumon.\"")
+
     def test_get_page(self):
         request = self._get_get_request('/')
 
@@ -53,7 +79,7 @@ class IndexTest(ViewTestCase):
 
         self.assertEqual(response.status_code, 200)
 
-        list1 = request.session['pokemon_list1']
+        list1 = request.session.get('pokemon_list1', [])
         self.assertEqual(len(list1), 0)
 
     def test_index_multiple(self):
