@@ -10,6 +10,7 @@
 </div>
 <div class="container">
  <div class="row text-center">
+  {% if success %}
   <h3>
    The transaction is
    <strong>
@@ -29,6 +30,9 @@
     The lists have the same base experience. It cannot get fairer, right?
    {% endif %}
   </small>
+  {% else %}
+   <h3>Add Pokémons to both lists so we can compare them.</h3>
+  {% endif %}
  </div>
  <div class="row text-center mt-4">
   <div class="col">

@@ -4,6 +4,7 @@ from django.http import HttpResponse, HttpResponseRedirect
 from .pokemon import fetch_pokemon, compare_pokemon_lists
 from .utils import get_pokemon_lists, as_percent, get_best_list
 
+
 def index(request):
     if request.method == 'POST':
         return handle_index_post_request(request)
@@ -44,8 +45,14 @@ def handle_index_get_request(request):
 
     base_experience1 = comp['base_experience1']
     base_experience2 = comp['base_experience2']
+    success = comp['success']
     difference = abs(comp['difference'])
-    unfairness = abs(comp['unfairness'])
+
+    if success:
+        unfairness = abs(comp['unfairness'])
+        percentage = as_percent(unfairness)
+    else:
+        percentage = None
 
     return render(request, 'index.html', {
         'pokemon_list1': pokemon_list1, 'pokemon_list2': pokemon_list2,
@@ -53,7 +60,7 @@ def handle_index_get_request(request):
         'base_experience2': base_experience2, 'fair': comp['fair'],
         'difference': difference,
         'best_list': get_best_list(base_experience1, base_experience2),
-        'percentage': as_percent(unfairness)
+        'percentage': percentage, 'success': success
     })
 
 
