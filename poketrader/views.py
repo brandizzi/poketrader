@@ -1,7 +1,8 @@
 from django.shortcuts import render
 from django.http import HttpResponse, HttpResponseRedirect
+from django.contrib import messages
 
-from .pokemon import fetch_pokemon, compare_pokemon_lists
+from .pokemon import fetch_pokemon, compare_pokemon_lists, APIException
 from .utils import get_pokemon_lists, as_percent, get_best_list
 
 
@@ -22,19 +23,24 @@ def remove(request):
 
 def handle_index_post_request(request):
     session = request.session
-    pokemon_list1, pokemon_list2 = get_pokemon_lists(session)
 
     pokemon_set = request.POST['pokemon_set']
     pokemon_name = request.POST['pokemon_name']
-    pokemon = fetch_pokemon(pokemon_name)
 
-    if pokemon_set == '1':
-        pokemon_list1.append(pokemon)
-    elif pokemon_set == '2':
-        pokemon_list2.append(pokemon)
+    try:
+        pokemon = fetch_pokemon(pokemon_name)
 
-    session['pokemon_list1'] = pokemon_list1
-    session['pokemon_list2'] = pokemon_list2
+        pokemon_list1, pokemon_list2 = get_pokemon_lists(session)
+
+        if pokemon_set == '1':
+            pokemon_list1.append(pokemon)
+        elif pokemon_set == '2':
+            pokemon_list2.append(pokemon)
+
+        session['pokemon_list1'] = pokemon_list1
+        session['pokemon_list2'] = pokemon_list2
+    except APIException as e:
+        messages.add_message(request, messages.ERROR, e.message)
 
     return HttpResponseRedirect('/')
 
