@@ -1,22 +1,18 @@
 from django.test import TestCase, RequestFactory
 
-from django.contrib.sessions.middleware import SessionMiddleware
-
-from .views import index, reset
+from .views import index, reset, remove
 
 
 class ViewTestCase(TestCase):
 
     def setUp(self):
         self.factory = RequestFactory()
+        self.session = {}
 
     def _get_request(self, path, **data):
-        request = self.factory.post('/', data)
+        request = self.factory.post(path, data)
 
-        middleware = SessionMiddleware()
-        middleware.process_request(request)
-
-        request.session.save()
+        request.session = self.session
 
         return request
 
@@ -42,6 +38,22 @@ class IndexTest(ViewTestCase):
                 'https://raw.githubusercontent.com/PokeAPI/'
                 'sprites/master/sprites/pokemon/25.png'
         })
+
+    def test_index_multiple(self):
+        request = self._get_request(
+            '/', pokemon_set='1', pokemon_name='pikachu')
+        index(request)
+
+        request = self._get_request(
+            '/', pokemon_set='1', pokemon_name='charmander')
+        index(request)
+
+        request = self._get_request(
+            '/', pokemon_set='1', pokemon_name='bulbasaur')
+        index(request)
+
+        list1 = request.session['pokemon_list1']
+        self.assertEqual(len(list1), 3)
 
 
 class ResetTest(ViewTestCase):
