@@ -9,8 +9,15 @@ class ViewTestCase(TestCase):
         self.factory = RequestFactory()
         self.session = {}
 
-    def _get_request(self, path, **data):
+    def _get_post_request(self, path, **data):
         request = self.factory.post(path, data)
+
+        request.session = self.session
+
+        return request
+
+    def _get_get_request(self, path, **data):
+        request = self.factory.get(path, data)
 
         request.session = self.session
 
@@ -20,7 +27,7 @@ class ViewTestCase(TestCase):
 class IndexTest(ViewTestCase):
 
     def test_add_to_session(self):
-        request = self._get_request(
+        request = self._get_post_request(
             '/', pokemon_set='1', pokemon_name='pikachu')
 
         response = index(request)
@@ -39,16 +46,26 @@ class IndexTest(ViewTestCase):
                 'sprites/master/sprites/pokemon/25.png'
         })
 
+    def test_get_page(self):
+        request = self._get_get_request('/')
+
+        response = index(request)
+
+        self.assertEqual(response.status_code, 200)
+
+        list1 = request.session['pokemon_list1']
+        self.assertEqual(len(list1), 0)
+
     def test_index_multiple(self):
-        request = self._get_request(
+        request = self._get_post_request(
             '/', pokemon_set='1', pokemon_name='pikachu')
         index(request)
 
-        request = self._get_request(
+        request = self._get_post_request(
             '/', pokemon_set='1', pokemon_name='charmander')
         index(request)
 
-        request = self._get_request(
+        request = self._get_post_request(
             '/', pokemon_set='1', pokemon_name='bulbasaur')
         index(request)
 
@@ -59,7 +76,7 @@ class IndexTest(ViewTestCase):
 class ResetTest(ViewTestCase):
 
     def test_reset_session(self):
-        request = self._get_request(
+        request = self._get_post_request(
             '/', pokemon_set='1', pokemon_name='pikachu')
 
         response = index(request)
@@ -67,7 +84,7 @@ class ResetTest(ViewTestCase):
         list1 = request.session['pokemon_list1']
         self.assertEqual(len(list1), 1)
 
-        request = self._get_request('/reset', pokemon_set='1')
+        request = self._get_post_request('/reset', pokemon_set='1')
 
         response = reset(request)
 
@@ -76,25 +93,26 @@ class ResetTest(ViewTestCase):
         list1 = request.session['pokemon_list1']
         self.assertEqual(len(list1), 0)
 
+
 class RemoveTest(ViewTestCase):
 
     def test_remove_pokemon(self):
-        request = self._get_request(
+        request = self._get_post_request(
             '/', pokemon_set='1', pokemon_name='pikachu')
         index(request)
 
-        request = self._get_request(
+        request = self._get_post_request(
             '/', pokemon_set='1', pokemon_name='charmander')
         index(request)
 
-        request = self._get_request(
+        request = self._get_post_request(
             '/', pokemon_set='1', pokemon_name='bulbasaur')
         index(request)
 
         list1 = request.session['pokemon_list1']
         self.assertEqual(len(list1), 3)
 
-        request = self._get_request('/remove', pokemon_set='1', index='1')
+        request = self._get_post_request('/remove', pokemon_set='1', index='1')
 
         response = remove(request)
 
