@@ -22,6 +22,8 @@ def index(request):
         session['pokemon_list1'] = pokemon_list1
         session['pokemon_list2'] = pokemon_list2
 
+        return HttpResponseRedirect('/')
+
     return render(request, 'index.html', {'pokemon_list1': pokemon_list1, 'pokemon_list2': pokemon_list2})
 
 

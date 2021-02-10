@@ -29,7 +29,7 @@ class IndexTest(ViewTestCase):
 
         response = index(request)
 
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 302)
 
         list1 = request.session['pokemon_list1']
         self.assertEqual(len(list1), 1)
