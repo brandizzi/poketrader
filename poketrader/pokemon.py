@@ -72,28 +72,42 @@ def compare_pokemon_lists(list1, list2, fairness_threshold=0.1):
     is "fair":
 
     >>> compare_pokemon_lists(list1, list2)                # doctest: +ELLIPSIS
-    {'base_experience1': 213, 'base_experience2': 126, 'difference': 87, 'unfairness': 0.69..., 'fair': False}
+    {'base_experience1': 213, 'base_experience2': 126, 'difference': 87, 'unfairness': 0.69..., 'fair': False, 'success': True}
     >>> compare_pokemon_lists(list2, list1)                # doctest: +ELLIPSIS
-    {'base_experience1': 126, 'base_experience2': 213, 'difference': -87, 'unfairness': 0.69..., 'fair': False}
+    {'base_experience1': 126, 'base_experience2': 213, 'difference': -87, 'unfairness': 0.69..., 'fair': False, 'success': True}
 
     By default, the transaction is deemed "fair" if the fairness factor is
     smaller or equal to 10%. It can be changed, though:
 
     >>> compare_pokemon_lists(                             # doctest: +ELLIPSIS
     ...     list1, list2, fairness_threshold=0.7)
-    {'base_experience1': 213, 'base_experience2': 126, 'difference': 87, 'unfairness': 0.69..., 'fair': True}
+    {'base_experience1': 213, 'base_experience2': 126, 'difference': 87, 'unfairness': 0.69..., 'fair': True, 'success': True}
+
+
+    Note that there is a "success" flag. If one of the lists is empty, or
+    somehow its total base experience is less than or equal to 0, then success
+    will be false:
+
+    >>> compare_pokemon_lists([], list2)                # doctest: +ELLIPSIS
+    {'base_experience1': 0, 'base_experience2': 126, 'difference': -126, 'unfairness': nan, 'fair': False, 'success': False}
 
     """
     base_experience1 = sum(p['base_experience'] for p in list1)
     base_experience2 = sum(p['base_experience'] for p in list2)
+    success = base_experience1 > 0 and base_experience2 > 0
     difference = base_experience1 - base_experience2
     smaller_base_experience = min(base_experience1, base_experience2)
-    fairness = abs(difference) / smaller_base_experience
+
+    if success:
+        fairness = abs(difference) / smaller_base_experience
+    else:
+        fairness = float('NaN')
 
     return {
         'base_experience1': base_experience1,
         'base_experience2': base_experience2,
         'difference': difference,
         'unfairness': fairness,
-        'fair': fairness <= fairness_threshold
+        'fair': fairness <= fairness_threshold,
+        'success': success
     }
