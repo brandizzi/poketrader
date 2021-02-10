@@ -17,7 +17,18 @@ class IndexTest(TestCase):
         response = index(request)
 
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(request.session['pokemon_list1'], ['pikachu'])
+
+        list1 = request.session['pokemon_list1']
+        self.assertEqual(len(list1), 1)
+
+        pokemon = list1[0]
+        self.assertEqual(pokemon, {
+            'name': 'pikachu',
+            'base_experience': 112,
+            'picture_url':
+                'https://raw.githubusercontent.com/PokeAPI/'
+                'sprites/master/sprites/pokemon/25.png'
+        })
 
     def _get_request(self, path, **data):
         request = self.factory.post('/', data)

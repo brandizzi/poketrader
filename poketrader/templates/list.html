@@ -1,5 +1,13 @@
 {% for pokemon in pokemon_list %}
-<div class="card">
- {{ pokemon }}
+<div class="card mb-3">
+ <div class="row d-flex justify-content-left">
+   <div class="col-2">
+    <img class="card-img" alt="{{ pokemon.name }} picture" src="{{pokemon.picture_url}}" style="width: 90px;">
+   </div>
+   <div class="col">
+    <h2 class="card-title">{{ pokemon.name }}</h2>
+    <div class="card-text text-left"><strong>Base experience:</strong> {{ pokemon.base_experience }}</div>
+   </div>
+ </div>
 </div>
 {% endfor %}

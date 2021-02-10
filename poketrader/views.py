@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from django.http import HttpResponse
 
-# Create your views here.
+from .pokemon import fetch_pokemon
 
 
 def index(request):
@@ -12,10 +12,12 @@ def index(request):
     if request.method == 'POST':
         pokemon_set = request.POST['pokemon_set']
         pokemon_name = request.POST['pokemon_name']
+        pokemon = fetch_pokemon(pokemon_name)
+
         if pokemon_set == '1':
-            pokemon_list1.append(pokemon_name)
+            pokemon_list1.append(pokemon)
         elif pokemon_set == '2':
-            pokemon_list2.append(pokemon_name)
+            pokemon_list2.append(pokemon)
 
         session['pokemon_list1'] = pokemon_list1
         session['pokemon_list2'] = pokemon_list2
