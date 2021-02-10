@@ -11,5 +11,6 @@ import poketrader.views
 # Learn more here: https://docs.djangoproject.com/en/2.1/topics/http/urls/
 
 urlpatterns = [
-    path("", poketrader.views.index, name="index")
+    path("", poketrader.views.index, name="index"),
+    path("reset", poketrader.views.reset, name="reset")
 ]
