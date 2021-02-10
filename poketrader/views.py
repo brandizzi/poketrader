@@ -1,8 +1,8 @@
 from django.shortcuts import render
 from django.http import HttpResponse, HttpResponseRedirect
 
-from .pokemon import fetch_pokemon
-
+from .pokemon import fetch_pokemon, compare_pokemon_lists
+from .utils import get_pokemon_lists, as_percent, get_best_list
 
 def index(request):
     if request.method == 'POST':
@@ -36,9 +36,20 @@ def handle_index_post_request(request):
 
 def handle_index_get_request(request):
     pokemon_list1, pokemon_list2 = get_pokemon_lists(request.session)
+    comp = compare_pokemon_lists(pokemon_list1, pokemon_list2)
+
+    base_experience1 = comp['base_experience1']
+    base_experience2 = comp['base_experience2']
+    difference = abs(comp['difference'])
+    unfairness = abs(comp['unfairness'])
 
     return render(request, 'index.html', {
-        'pokemon_list1': pokemon_list1, 'pokemon_list2': pokemon_list2
+        'pokemon_list1': pokemon_list1, 'pokemon_list2': pokemon_list2,
+        'base_experience1': base_experience1,
+        'base_experience2': base_experience2, 'fair': comp['fair'],
+        'difference': difference,
+        'best_list': get_best_list(base_experience1, base_experience2),
+        'percentage': as_percent(unfairness)
     })
 
 
@@ -49,19 +60,3 @@ def handle_reset_post_request(request):
     pokemon_list.clear()
     session['pokemon_list' + pokemon_set] = pokemon_list
     return HttpResponseRedirect('/')
-
-
-def get_pokemon_lists(session):
-    """
-    Returns the two lists found in the session:
-
-    >>> l1, l2 = get_pokemon_lists({
-    ...     'pokemon_list1': ['pikachu'],
-    ...     'pokemon_list2': ['charmander']
-    ... })
-    >>> l1
-    ['pikachu']
-    >>> l2
-    ['charmander']
-    """
-    return (session.get('pokemon_list1', []), session.get('pokemon_list2', []))

@@ -10,6 +10,27 @@
 </div>
 <div class="container">
  <div class="row text-center">
+  <h3>
+   The transaction is
+   <strong>
+    {% if fair %}
+     <span class="text-primary">FAIR</span>
+    {% else %}
+     <span class="text-danger">UNFAIR</span>
+    {% endif %}
+   </strong>!
+  </h3>
+  <small>
+   {% if difference %}
+    (The {{ best_list }} list is has {{ difference }} more points of base
+    experience, which makes it {{ percentage }}% better. It seems like a
+    {% if fair %}reasonable{% else %}unreasonable{% endif %} difference!)
+   {% else %}
+    The lists have the same base experience. It cannot get fairer, right?
+   {% endif %}
+  </small>
+ </div>
+ <div class="row text-center mt-4">
   <div class="col">
    {% include 'form.html' with pokemon_set='1' pokemon_list=pokemon_list1 %}
   </div>
@@ -19,10 +40,10 @@
  </div>
  <div class="row">
   <div class="col">
-   {% include 'list.html' with pokemon_list=pokemon_list1 %}
+   {% include 'list.html' with pokemon_list=pokemon_list1 base_experience=base_experience1 %}
   </div>
   <div class="col">
-   {% include 'list.html' with pokemon_list=pokemon_list2 %}
+   {% include 'list.html' with pokemon_list=pokemon_list2 base_experience=base_experience2 %}
   </div>
  </div>
  <div class="row text-center">
