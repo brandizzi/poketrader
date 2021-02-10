@@ -23,8 +23,23 @@ def fetch_pokemon(name):
 
     >>> pokemon
     {'name': 'pikachu', 'base_experience': 112, 'picture_url': 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/25.png'}
+
+    If the requested Pokémon does not exist, raise an APIException:
+
+    >>> pokemon = fetch_pokemon('agumon')
+    Traceback (most recent call last):
+     ...
+    pokemon.APIException: There is no such Pokémon called "agumon."
+    >>> pokemon = fetch_pokemon('flamedramon')
+    Traceback (most recent call last):
+      ...
+    pokemon.APIException: There is no such Pokémon called "flamedramon."
     """
-    api_pokemon = CLIENT.get_pokemon(name)
+    try:
+        api_pokemon = CLIENT.get_pokemon(name)
+    except:
+        raise APIException(
+            "There is no such Pokémon called \"{}.\"".format(name))
 
     return {
         'name': api_pokemon.name,
@@ -111,3 +126,13 @@ def compare_pokemon_lists(list1, list2, fairness_threshold=0.1):
         'fair': fairness <= fairness_threshold,
         'success': success
     }
+
+
+class APIException(Exception):
+    """
+    Exception to be raised when a call to PokeAPI fails.
+    """
+
+    def __init__(self, message, *args, **kwargs):
+        super().__init__(*(message, *args), **kwargs)
+        self.message = message
