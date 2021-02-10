@@ -75,3 +75,32 @@ class ResetTest(ViewTestCase):
 
         list1 = request.session['pokemon_list1']
         self.assertEqual(len(list1), 0)
+
+class RemoveTest(ViewTestCase):
+
+    def test_remove_pokemon(self):
+        request = self._get_request(
+            '/', pokemon_set='1', pokemon_name='pikachu')
+        index(request)
+
+        request = self._get_request(
+            '/', pokemon_set='1', pokemon_name='charmander')
+        index(request)
+
+        request = self._get_request(
+            '/', pokemon_set='1', pokemon_name='bulbasaur')
+        index(request)
+
+        list1 = request.session['pokemon_list1']
+        self.assertEqual(len(list1), 3)
+
+        request = self._get_request('/remove', pokemon_set='1', index='1')
+
+        response = remove(request)
+
+        self.assertEqual(response.status_code, 302)
+
+        list1 = request.session['pokemon_list1']
+        self.assertEqual(len(list1), 2)
+        self.assertEqual(list1[0]['name'], 'pikachu')
+        self.assertEqual(list1[1]['name'], 'bulbasaur')
