@@ -2,12 +2,14 @@
 This module contains the Pokemon class (to represent pokémons) as well as the
 fetch_pokemon() function to retrieve pokémons.
 """
+import functools
 
 import pokepy
 
 CLIENT = pokepy.V2Client()
 
 
+@functools.lru_cache(maxsize=512)
 def fetch_pokemon(name):
     """
     This function retrieves data from the PokéAPI and returns
