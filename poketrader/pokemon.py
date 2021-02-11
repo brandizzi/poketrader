@@ -24,6 +24,14 @@ def fetch_pokemon(name):
     >>> pokemon
     {'name': 'pikachu', 'base_experience': 112, 'picture_url': 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/25.png'}
 
+    Note that this function is case-insensitive and ignores any trailing spaces
+    in the name of the pokémon:
+
+    >>> fetch_pokemon('BuLbAsAuR')
+    {'name': 'bulbasaur', 'base_experience': 64, 'picture_url': 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/1.png'}
+    >>> fetch_pokemon('    charmander      ')
+    {'name': 'charmander', 'base_experience': 62, 'picture_url': 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/4.png'}
+
     If the requested Pokémon does not exist, raise an APIException:
 
     >>> pokemon = fetch_pokemon('agumon')
@@ -34,9 +42,10 @@ def fetch_pokemon(name):
     Traceback (most recent call last):
       ...
     pokemon.APIException: There is no such Pokémon called "flamedramon."
+
     """
     try:
-        api_pokemon = CLIENT.get_pokemon(name)
+        api_pokemon = CLIENT.get_pokemon(name.strip())
     except:
         raise APIException(
             "There is no such Pokémon called \"{}.\"".format(name))
