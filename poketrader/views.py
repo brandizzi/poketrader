@@ -47,7 +47,8 @@ def handle_index_post_request(request):
 
 def handle_index_get_request(request):
     pokemon_list1, pokemon_list2 = get_pokemon_lists(request.session)
-    comp = compare_pokemon_lists(pokemon_list1, pokemon_list2)
+    comp = compare_pokemon_lists(
+        pokemon_list1, pokemon_list2, fairness_threshold=0.15)
 
     base_experience1 = comp['base_experience1']
     base_experience2 = comp['base_experience2']
