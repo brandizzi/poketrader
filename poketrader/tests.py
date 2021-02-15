@@ -3,8 +3,8 @@ from django.contrib.auth.models import User, AnonymousUser
 from django.contrib.messages.middleware import MessageMiddleware
 from django.contrib import messages
 
-from .views import index, reset, remove
-from .models import Pokemon
+from .views import index, reset, remove, comparison_view
+from .models import Pokemon, PokemonComparison
 
 
 class ViewTestCase(TestCase):
@@ -129,6 +129,110 @@ class IndexTest(ViewTestCase):
 
         list1 = request.session['pokemon_list1']
         self.assertEqual(len(list1), 3)
+
+    def test_create_comparison_if_authenticated(self):
+        user = User.objects.create(username='test')
+
+        self._log_in(user)
+
+        comparisons = PokemonComparison.objects.filter(user_id=user.id)
+
+        self.assertEqual(len(comparisons), 0)
+
+        request = self._get_post_request(
+            '/', pokemon_set='1', pokemon_name='pikachu')
+
+        response = index(request)
+
+        self.assertEqual(response.status_code, 302)
+
+        comparisons = PokemonComparison.objects.filter(user_id=user.id)
+
+        self.assertEqual(len(comparisons), 1)
+
+        comparisons[0].delete()
+
+        self._log_out()
+
+        user.delete()
+
+    def test_do_not_create_comparison_if_not_authenticated(self):
+        comparisons = PokemonComparison.objects.all()
+
+        self.assertEqual(len(comparisons), 0)
+        request = self._get_post_request(
+            '/', pokemon_set='1', pokemon_name='pikachu')
+
+        response = index(request)
+
+        self.assertEqual(response.status_code, 302)
+
+        comparisons = PokemonComparison.objects.all()
+
+        self.assertEqual(len(comparisons), 0)
+
+    def test_redirect_id_if_authenticated(self):
+        user = User.objects.create(username='test')
+
+        self._log_in(user)
+
+        comparisons = PokemonComparison.objects.filter(user_id=user.id)
+
+        self.assertEqual(len(comparisons), 0)
+
+        request = self._get_post_request(
+            '/', pokemon_set='1', pokemon_name='pikachu')
+
+        response = index(request)
+
+        self.assertEqual(response.status_code, 302)
+
+        comparisons = PokemonComparison.objects.filter(user_id=user.id)
+
+        self.assertEquals(len(comparisons), 1)
+
+        comparison = comparisons[0]
+
+        expected_path = '/comparison/{}'.format(comparison.id)
+
+        self.assertTrue(
+            expected_path in response.url,
+            '{} not in {}'.format(expected_path, response.url))
+
+        comparisons[0].delete()
+
+        self._log_out()
+
+        user.delete()
+
+
+class ComparisonTest(ViewTestCase):
+
+    def test_get_comparison(self):
+        user = User.objects.create(username='test')
+
+        self._log_in(user)
+
+        request = self._get_post_request(
+            '/', pokemon_set='1', pokemon_name='pikachu')
+        index(request)
+
+        self.session.clear()
+
+        self._log_in(user)
+
+        comparison = PokemonComparison.objects.all().first()
+
+        request = self._get_get_request('comparison/{}'.format(comparison.id))
+
+        response = comparison_view(request, comparison.id)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('pikachu', response.content.decode(response.charset))
+
+        self._log_out()
+
+        user.delete()
 
 
 class ResetTest(ViewTestCase):
