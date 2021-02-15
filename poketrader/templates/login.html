@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="jumbotron text-center">
+ <a href="/" class="lang-logo">
+  <img src="{% static 'pokemon-logo.jpg'%}">
+ </a>
+ <h1>PokerTrader</h1>
+</div>
+<div class="container">
+ {% if form.errors %}
+  <div class="messages">
+   Your username and password didn't match. Please try again.
+  </div>
+ {% endif %}
+ <div class="row text-center">
+<form method="post" action="{% url 'login' %}">
+{% csrf_token %}
+<table>
+<tr>
+    <td>{{ form.username.label_tag }}</td>
+    <td>{{ form.username }}</td>
+</tr>
+<tr>
+    <td>{{ form.password.label_tag }}</td>
+    <td>{{ form.password }}</td>
+</tr>
+</table>
+
+<input type="submit" value="login">
+<input type="hidden" name="next" value="{{ next }}">
+</form>
+</div>
+{% endblock %}

@@ -6,3 +6,16 @@
     margin-right: 1em;
     margin-top: 0.5em;
 }
+
+.login-page {
+    max-width: 360px;
+}
+
+.login-page .row {
+    padding-bottom: 15px;
+}
+
+.login-link {
+    float: right;
+    margin: 15px;
+}

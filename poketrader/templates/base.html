@@ -8,7 +8,20 @@
   <link href="{% static "main.css" %}" rel="stylesheet" >
 </head>
 <body>
- {% block content %}
- {% endblock %}
+<div class="jumbotron text-center">
+ <div class="login-link">
+  {% if request.user.is_authenticated %}
+  <p>Hello {{user.username}}! (<a href="/logout">Log out</a>)</p>
+  {% else %}
+  <p><a href="/login">Log in</a></p>
+  {% endif %}
+ </div>
+ <a href="/" class="lang-logo">
+  <img src="{% static 'pokemon-logo.jpg'%}">
+ </a>
+ <h1>PokerTrader</h1>
+</div>
+{% block content %}
+{% endblock %}
 </body>
 </html>
