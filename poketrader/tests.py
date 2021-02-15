@@ -3,6 +3,7 @@ from django.contrib.messages.middleware import MessageMiddleware
 from django.contrib import messages
 
 from .views import index, reset, remove
+from .models import Pokemon
 
 
 class ViewTestCase(TestCase):
@@ -33,6 +34,24 @@ class ViewTestCase(TestCase):
 
 
 class IndexTest(ViewTestCase):
+
+    def test_save_to_database(self):
+        pokemons = Pokemon.objects.filter(name='pikachu')
+
+        self.assertEqual(len(pokemons), 0)
+
+        request = self._get_post_request(
+            '/', pokemon_set='1', pokemon_name='pikachu')
+
+        response = index(request)
+
+        self.assertEqual(response.status_code, 302)
+
+        pokemons = Pokemon.objects.filter(name='pikachu')
+
+        self.assertEqual(len(pokemons), 1)
+
+        pokemons[0].delete()
 
     def test_add_to_session(self):
         request = self._get_post_request(
