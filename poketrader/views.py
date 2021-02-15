@@ -2,6 +2,7 @@ from django.shortcuts import render
 from django.http import HttpResponse, HttpResponseRedirect
 from django.contrib import messages
 
+from .models import Pokemon
 from .pokemon import fetch_pokemon, compare_pokemon_lists, APIException
 from .utils import get_pokemon_lists, as_percent, get_best_list
 
@@ -39,6 +40,8 @@ def handle_index_post_request(request):
 
         session['pokemon_list1'] = pokemon_list1
         session['pokemon_list2'] = pokemon_list2
+
+        Pokemon.objects.get_or_create(**pokemon)
     except APIException as e:
         messages.add_message(request, messages.ERROR, e.message)
 
