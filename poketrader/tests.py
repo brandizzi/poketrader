@@ -1,4 +1,5 @@
 from django.test import TestCase, RequestFactory
+from django.contrib.auth.models import User, AnonymousUser
 from django.contrib.messages.middleware import MessageMiddleware
 from django.contrib import messages
 
@@ -11,6 +12,7 @@ class ViewTestCase(TestCase):
     def setUp(self):
         self.factory = RequestFactory()
         self.session = {}
+        self.user = AnonymousUser()
 
     def _get_post_request(self, path, **data):
         request = self.factory.post(path, data)
@@ -19,6 +21,8 @@ class ViewTestCase(TestCase):
 
         message_middleware = MessageMiddleware()
         message_middleware.process_request(request)
+
+        request.user = self.user
 
         return request
 
@@ -31,6 +35,15 @@ class ViewTestCase(TestCase):
         message_middleware.process_request(request)
 
         return request
+
+    def _log_in(self, user):
+        self.user = user
+        if user.is_authenticated:
+            self.session['_auth_user_id'] = user.id
+
+    def _log_out(self):
+        self.user = AnonymousUser()
+        del self.session['_auth_user_id']
 
 
 class IndexTest(ViewTestCase):
