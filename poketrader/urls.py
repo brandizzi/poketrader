@@ -14,6 +14,9 @@ import poketrader.views
 
 urlpatterns = [
     path("", poketrader.views.index, name="index"),
+    path(
+        "comparison/<int:comparison_id>", poketrader.views.comparison,
+        name="comparison"),
     path("reset", poketrader.views.reset, name="reset"),
     path("remove", poketrader.views.remove, name="remove"),
     path('login/', LoginView.as_view(), name="login"),

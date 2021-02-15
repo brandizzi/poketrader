@@ -9,6 +9,13 @@ class Pokemon(models.Model):
     base_experience = models.IntegerField()
     picture_url = models.URLField()
 
+    def as_dict(self):
+        return {
+            'name': self.name,
+            'base_experience': self.base_experience,
+            'picture_url': self.picture_url
+        }
+
 
 class PokemonComparison(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
