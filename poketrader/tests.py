@@ -142,7 +142,7 @@ class ComparisonPostViewTest(ViewTestCase):
             comparison_view(request, comparison.id)
 
             comparison = self.get_comparison(user)
-            self.assertEqual(comparison.list1.all().count(), 3)
+            self.assertEqual(len(comparison.list1), 3)
 
     def test_create_comparison_if_authenticated(self):
         with self.logged_in() as user:
@@ -183,7 +183,7 @@ class ComparisonPostViewTest(ViewTestCase):
 
             comparison = PokemonComparison.objects.get(user_id=user.id)
 
-            self.assertEqual(comparison.list1.all().count(), 1)
+            self.assertEqual(len(comparison.list1), 1)
 
             request = self.get_post_request(
                 '/comparison/{}'.format(comparison.id), pokemon_set='1',
@@ -193,7 +193,7 @@ class ComparisonPostViewTest(ViewTestCase):
 
             comparison = PokemonComparison.objects.get(user_id=user.id)
 
-            self.assertEqual(comparison.list1.all().count(), 2)
+            self.assertEqual(len(comparison.list1), 2)
 
             comparisons.delete()
 
@@ -207,7 +207,7 @@ class ComparisonPostViewTest(ViewTestCase):
 
             comparison = PokemonComparison.objects.get(user_id=user.id)
 
-            self.assertEqual(comparison.list1.all().count(), 1)
+            self.assertEqual(len(comparison.list1), 1)
 
             request = self.get_post_request(
                 '/comparison/{}'.format(comparison.id), pokemon_set='1',
@@ -217,11 +217,9 @@ class ComparisonPostViewTest(ViewTestCase):
 
             comparison = PokemonComparison.objects.get(user_id=user.id)
 
-            self.assertEqual(comparison.list1.all().count(), 2)
+            self.assertEqual(len(comparison.list1), 2)
 
             comparisons.delete()
-
-
 
     def test_redirect_id_if_authenticated(self):
         with self.logged_in() as user:
@@ -320,7 +318,7 @@ class ResetViewTest(ViewTestCase):
             response = self.fetch_and_save_pokemon('pikachu')
 
             comparison = self.get_comparison(user)
-            self.assertEqual(comparison.list1.all().count(), 1)
+            self.assertEqual(len(comparison.list1), 1)
 
             request = self.get_post_request('/reset', pokemon_set='1')
 
@@ -329,7 +327,7 @@ class ResetViewTest(ViewTestCase):
             self.assertEqual(response.status_code, 302)
 
             comparison = self.get_comparison(user)
-            self.assertEqual(comparison.list1.all().count(), 0)
+            self.assertEqual(len(comparison.list1), 0)
 
     def test_get_page_redirect_unauthenticated(self):
         with self.logged_in() as user:
@@ -359,7 +357,7 @@ class RemoveViewTest(ViewTestCase):
             response = self.fetch_and_save_pokemon('bulbasaur', comparison)
 
             comparison = self.get_comparison(user)
-            self.assertEqual(comparison.list1.all().count(), 3)
+            self.assertEqual(len(comparison.list1), 3)
 
             request = self.get_post_request(
                 '/remove', pokemon_set='1', index='1')
@@ -369,9 +367,9 @@ class RemoveViewTest(ViewTestCase):
             self.assertEqual(response.status_code, 302)
 
             comparison = self.get_comparison(user)
-            self.assertEqual(comparison.list1.all().count(), 2)
-            self.assertEqual(comparison.list1.all()[0].name, 'pikachu')
-            self.assertEqual(comparison.list1.all()[1].name, 'bulbasaur')
+            self.assertEqual(len(comparison.list1), 2)
+            self.assertEqual(comparison.list1[0].name, 'pikachu')
+            self.assertEqual(comparison.list1[1].name, 'bulbasaur')
 
     def test_get_page_redirect_unauthenticated(self):
         request = self.get_get_request('remove/1')
@@ -379,6 +377,7 @@ class RemoveViewTest(ViewTestCase):
         response = remove_view(request, None)
 
         self.assertRedirect(response, '/login')
+
 
 class DeleteViewTest(ViewTestCase):
 
@@ -388,7 +387,7 @@ class DeleteViewTest(ViewTestCase):
             comparison = self.get_comparison(user)
 
             comparison = self.get_comparison(user)
-            self.assertEqual(comparison.list1.all().count(), 1)
+            self.assertEqual(len(comparison.list1), 1)
 
             request = self.get_post_request(
                 '/delete', pokemon_set='1', index='1')
