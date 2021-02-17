@@ -2,6 +2,8 @@ from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponse, HttpResponseRedirect
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.http import (
+    require_GET, require_POST, require_http_methods)
 
 from .models import Pokemon, PokemonComparison
 from .pokemon import fetch_pokemon, compare_pokemon_lists, APIException
@@ -9,19 +11,53 @@ from .utils import as_percent, get_best_list
 
 
 @login_required
+@require_GET
 def index(request):
-    if request.method == 'POST':
-        return handle_index_post_request(request)
-    elif request.method == 'GET':
-        return handle_index_get_request(request)
+    comparisons = PokemonComparison.objects.filter(user=request.user)
+
+    return render(request, 'index.html', {
+        'comparisons': comparisons
+    })
 
 
 @login_required
+@require_http_methods(['GET', 'POST'])
 def comparison(request, comparison_id):
     if request.method == 'POST':
         return handle_comparison_post_request(request, comparison_id)
     elif request.method == 'GET':
         return handle_comparison_get_request(request, comparison_id)
+
+
+@login_required
+@require_POST
+def reset(request, comparison_id):
+    pokemon_set = request.POST['pokemon_set']
+    comparison = get_object_or_404(PokemonComparison, id=comparison_id)
+
+    if pokemon_set == '1':
+        comparison.list1.clear()
+    elif pokemon_set == '2':
+        comparison.list2.clear()
+
+    return HttpResponseRedirect('/comparison/{}'.format(comparison_id))
+
+
+@login_required
+@require_POST
+def remove(request, comparison_id):
+    pokemon_set = request.POST['pokemon_set']
+    index = int(request.POST['index'])
+    comparison = get_object_or_404(PokemonComparison, id=comparison_id)
+
+    if pokemon_set == '1':
+        list = comparison.list1
+    elif pokemon_set == '2':
+        list = comparison.list2
+
+    list.remove(list.all()[index])
+
+    return HttpResponseRedirect('/comparison/{}'.format(comparison_id))
 
 
 def handle_comparison_get_request(request, comparison_id):
@@ -57,16 +93,6 @@ def handle_comparison_get_request(request, comparison_id):
     })
 
 
-@login_required
-def reset(request, comparison_id):
-    return handle_reset_post_request(request, comparison_id)
-
-
-@login_required
-def remove(request, comparison_id):
-    return handle_remove_post_request(request, comparison_id)
-
-
 def handle_comparison_post_request(request, comparison_id):
     pokemon_set = request.POST['pokemon_set']
     pokemon_name = request.POST['pokemon_name']
@@ -92,39 +118,3 @@ def handle_comparison_post_request(request, comparison_id):
 
     redirect_url = '/comparison/{}'.format(comparison.id)
     return HttpResponseRedirect(redirect_url)
-
-
-@login_required
-def handle_index_get_request(request):
-    comparisons = PokemonComparison.objects.filter(user=request.user)
-
-    return render(request, 'index.html', {
-        'comparisons': comparisons
-    })
-
-
-def handle_reset_post_request(request, comparison_id):
-    pokemon_set = request.POST['pokemon_set']
-    comparison = get_object_or_404(PokemonComparison, id=comparison_id)
-
-    if pokemon_set == '1':
-        comparison.list1.clear()
-    elif pokemon_set == '2':
-        comparison.list2.clear()
-
-    return HttpResponseRedirect('/comparison/{}'.format(comparison_id))
-
-
-def handle_remove_post_request(request, comparison_id):
-    pokemon_set = request.POST['pokemon_set']
-    index = int(request.POST['index'])
-    comparison = get_object_or_404(PokemonComparison, id=comparison_id)
-
-    if pokemon_set == '1':
-        list = comparison.list1
-    elif pokemon_set == '2':
-        list = comparison.list2
-
-    list.remove(list.all()[index])
-
-    return HttpResponseRedirect('/comparison/{}'.format(comparison_id))
