@@ -16,6 +16,12 @@ def index(request):
 
 
 def comparison(request, comparison_id):
+    if request.method == 'POST':
+        return handle_comparison_post_request(request, comparison_id)
+    elif request.method == 'GET':
+        return handle_comparison_get_request(request, comparison_id)
+
+def handle_comparison_get_request(request, comparison_id):
     comparison = get_object_or_404(PokemonComparison, id=comparison_id)
     pokemon_list1 = [p.as_dict() for p in comparison.list1.all()]
     pokemon_list2 = [p.as_dict() for p in comparison.list2.all()]
@@ -51,7 +57,7 @@ def remove(request):
     return handle_remove_post_request(request)
 
 
-def handle_index_post_request(request):
+def handle_comparison_post_request(request, comparison_id):
     session = request.session
 
     pokemon_set = request.POST['pokemon_set']

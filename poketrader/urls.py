@@ -15,6 +15,9 @@ import poketrader.views
 urlpatterns = [
     path("", poketrader.views.index, name="index"),
     path(
+        "comparison", poketrader.views.comparison,
+        kwargs={'comparison_id': None}, name="comparison_new"),
+    path(
         "comparison/<int:comparison_id>", poketrader.views.comparison,
         name="comparison"),
     path("reset", poketrader.views.reset, name="reset"),

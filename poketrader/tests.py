@@ -43,9 +43,9 @@ class ViewTestCase(TestCase):
 
     def fetch_and_save_pokemon(self, name):
         request = self.get_post_request(
-            '/', pokemon_set='1', pokemon_name=name)
+            '/comparison', pokemon_set='1', pokemon_name=name)
 
-        return index_view(request)
+        return comparison_view(request, None)
 
     def assertRedirect(self, response, url):
         self.assertEqual(response.status_code, 302)
@@ -74,7 +74,7 @@ class ViewTestCase(TestCase):
         request.user = self.user
 
 
-class IndexPostViewTest(ViewTestCase):
+class ComparisonPostViewTest(ViewTestCase):
 
     def test_save_to_database(self):
         pokemons = Pokemon.objects.filter(name='pikachu')
@@ -82,9 +82,9 @@ class IndexPostViewTest(ViewTestCase):
         self.assertEqual(len(pokemons), 0)
 
         request = self.get_post_request(
-            '/', pokemon_set='1', pokemon_name='pikachu')
+            '/comparison', pokemon_set='1', pokemon_name='pikachu')
 
-        response = index_view(request)
+        response = comparison_view(request, None)
 
         self.assertEqual(response.status_code, 302)
 
@@ -96,9 +96,9 @@ class IndexPostViewTest(ViewTestCase):
 
     def test_add_to_session(self):
         request = self.get_post_request(
-            '/', pokemon_set='1', pokemon_name='pikachu')
+            '/comparison', pokemon_set='1', pokemon_name='pikachu')
 
-        response = index_view(request)
+        response = comparison_view(request, None)
 
         self.assertEqual(response.status_code, 302)
 
@@ -116,9 +116,9 @@ class IndexPostViewTest(ViewTestCase):
 
     def test_add_to_session_not_found(self):
         request = self.get_post_request(
-            '/', pokemon_set='1', pokemon_name='agumon')
+            '/comparison', pokemon_set='1', pokemon_name='agumon')
 
-        response = index_view(request)
+        response = comparison_view(request, None)
 
         self.assertEqual(response.status_code, 302)
 
@@ -134,16 +134,16 @@ class IndexPostViewTest(ViewTestCase):
 
     def test_index_multiple(self):
         request = self.get_post_request(
-            '/', pokemon_set='1', pokemon_name='pikachu')
-        index_view(request)
+            '/comparison', pokemon_set='1', pokemon_name='pikachu')
+        comparison_view(request, None)
 
         request = self.get_post_request(
-            '/', pokemon_set='1', pokemon_name='charmander')
-        index_view(request)
+            '/comparison', pokemon_set='1', pokemon_name='charmander')
+        comparison_view(request, None)
 
         request = self.get_post_request(
-            '/', pokemon_set='1', pokemon_name='bulbasaur')
-        index_view(request)
+            '/comparison', pokemon_set='1', pokemon_name='bulbasaur')
+        comparison_view(request, None)
 
         list1 = request.session['pokemon_list1']
         self.assertEqual(len(list1), 3)
