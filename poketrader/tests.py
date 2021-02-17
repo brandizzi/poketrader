@@ -7,7 +7,7 @@ from django.contrib import messages
 
 from .views import (
     index as index_view, reset as reset_view, remove as remove_view,
-    comparison as comparison_view)
+    comparison as comparison_view, delete as delete_view)
 from .models import Pokemon, PokemonComparison
 
 
@@ -351,5 +351,30 @@ class RemoveViewTest(ViewTestCase):
         request = self.get_get_request('remove/1')
 
         response = remove_view(request, None)
+
+        self.assertRedirect(response, '/login')
+
+class DeleteViewTest(ViewTestCase):
+
+    def test_delete_comparison(self):
+        with self.logged_in() as user:
+            response = self.fetch_and_save_pokemon('pikachu')
+            comparison = self.get_comparison(user)
+
+            comparison = self.get_comparison(user)
+            self.assertEqual(comparison.list1.all().count(), 1)
+
+            request = self.get_post_request(
+                '/delete', pokemon_set='1', index='1')
+
+            response = delete_view(request, comparison.id)
+
+            with self.assertRaises(Exception):
+                comparison = self.get_comparison(user)
+
+    def test_get_page_redirect_unauthenticated(self):
+        request = self.get_get_request('remove/1')
+
+        response = delete_view(request, None)
 
         self.assertRedirect(response, '/login')
