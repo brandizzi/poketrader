@@ -18,9 +18,12 @@ implement:
 * a type-ahead/autocomplete feature for the pokémon names; * user
 authentication;
 
-* pokemon list persistence;
+* Importing all pokemons at once;
 
 * [caching with Memcache](https://devcenter.heroku.com/articles/django-memcache).
+
+Some of those can be found at the
+[issues](https://github.com/brandizzi/poketrader/issues).
 
 It would probably be instructive/fun to implement the interface as a
 single-page application.
