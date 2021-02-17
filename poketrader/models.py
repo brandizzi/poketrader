@@ -17,10 +17,14 @@ class Pokemon(models.Model):
         }
 
 
+class PokemonListItem(models.Model):
+    pokemon = models.ForeignKey(Pokemon, on_delete=models.CASCADE)
+
+
 class PokemonComparison(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    list1 = models.ManyToManyField(Pokemon, related_name='list1')
-    list2 = models.ManyToManyField(Pokemon, related_name='list2')
+    list_items1 = models.ManyToManyField(PokemonListItem, related_name='list1')
+    list_items2 = models.ManyToManyField(PokemonListItem, related_name='list2')
 
     def as_list_of_dicts(self):
         return (
