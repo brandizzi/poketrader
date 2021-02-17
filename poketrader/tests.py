@@ -41,11 +41,12 @@ class ViewTestCase(TestCase):
         self.user = AnonymousUser()
         del self.session['_auth_user_id']
 
-    def fetch_and_save_pokemon(self, name):
+    def fetch_and_save_pokemon(self, name, comparison=None):
         request = self.get_post_request(
             '/comparison', pokemon_set='1', pokemon_name=name)
 
-        return comparison_view(request, None)
+        return comparison_view(
+            request, comparison.id if comparison is not None else None)
 
     def assertRedirect(self, response, url):
         self.assertEqual(response.status_code, 302)
@@ -290,22 +291,22 @@ class ResetViewTest(ViewTestCase):
 class RemoveViewTest(ViewTestCase):
 
     def test_remove_pokemon(self):
-        response = self.fetch_and_save_pokemon('pikachu')
+        with self.logged_in() as user:
+            response = self.fetch_and_save_pokemon('pikachu')
+            comparison = self.get_comparison(user)
+            response = self.fetch_and_save_pokemon('charmander', comparison)
+            response = self.fetch_and_save_pokemon('bulbasaur', comparison)
 
-        response = self.fetch_and_save_pokemon('charmander')
+            comparison = self.get_comparison(user)
+            self.assertEqual(comparison.list1.all().count(), 3)
 
-        response = self.fetch_and_save_pokemon('bulbasaur')
+            request = self.get_post_request('/remove', pokemon_set='1', index='1')
 
-        list1 = self.session['pokemon_list1']
-        self.assertEqual(len(list1), 3)
+            response = remove_view(request, comparison.id)
 
-        request = self.get_post_request('/remove', pokemon_set='1', index='1')
+            self.assertEqual(response.status_code, 302)
 
-        response = remove_view(request)
-
-        self.assertEqual(response.status_code, 302)
-
-        list1 = self.session['pokemon_list1']
-        self.assertEqual(len(list1), 2)
-        self.assertEqual(list1[0]['name'], 'pikachu')
-        self.assertEqual(list1[1]['name'], 'bulbasaur')
+            comparison = self.get_comparison(user)
+            self.assertEqual(comparison.list1.all().count(), 2)
+            self.assertEqual(comparison.list1.all()[0].name, 'pikachu')
+            self.assertEqual(comparison.list1.all()[1].name, 'bulbasaur')
