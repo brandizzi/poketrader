@@ -28,12 +28,28 @@ class PokemonComparison(models.Model):
 
     def as_list_of_dicts(self):
         return (
-            [p.as_dict() for p in self.list1.all()],
-            [p.as_dict() for p in self.list2.all()]
+            [p.as_dict() for p in self.list1],
+            [p.as_dict() for p in self.list2]
         )
 
     def list1_as_string(self):
-        return ", ".join(p.name for p in self.list1.all())
+        return ", ".join(p.name for p in self.list1)
 
     def list2_as_string(self):
-        return ", ".join(p.name for p in self.list2.all())
+        return ", ".join(p.name for p in self.list2)
+
+    @property
+    def list1(self):
+        return [i.pokemon for i in self.list_items1.all()]
+
+    @property
+    def list2(self):
+        return [i.pokemon for i in self.list_items2.all()]
+
+    def add_pokemon(self, pokemon, list_number):
+        item = PokemonListItem(pokemon=pokemon)
+        item.save()
+        if list_number == 1:
+            self.list_items1.add(item)
+        elif list_number == 2:
+            self.list_items2.add(item)
