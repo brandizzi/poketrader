@@ -21,10 +21,15 @@ def comparison(request, comparison_id):
     elif request.method == 'GET':
         return handle_comparison_get_request(request, comparison_id)
 
+
 def handle_comparison_get_request(request, comparison_id):
-    comparison = get_object_or_404(PokemonComparison, id=comparison_id)
-    pokemon_list1 = [p.as_dict() for p in comparison.list1.all()]
-    pokemon_list2 = [p.as_dict() for p in comparison.list2.all()]
+    if comparison_id is not None:
+        comparison = get_object_or_404(PokemonComparison, id=comparison_id)
+        pokemon_list1 = [p.as_dict() for p in comparison.list1.all()]
+        pokemon_list2 = [p.as_dict() for p in comparison.list2.all()]
+    else:
+        pokemon_list1 = []
+        pokemon_list2 = []
     comp = compare_pokemon_lists(
         pokemon_list1, pokemon_list2, fairness_threshold=0.15)
 
@@ -39,7 +44,8 @@ def handle_comparison_get_request(request, comparison_id):
     else:
         percentage = None
 
-    return render(request, 'index.html', {
+    return render(request, 'comparison.html', {
+        'comparison_id': comparison_id if comparison_id is not None else '',
         'pokemon_list1': pokemon_list1, 'pokemon_list2': pokemon_list2,
         'base_experience1': base_experience1,
         'base_experience2': base_experience2, 'fair': comp['fair'],
@@ -65,9 +71,16 @@ def handle_comparison_post_request(request, comparison_id):
     redirect_url = '/'
 
     try:
-        pokemon = fetch_pokemon(pokemon_name)
+        user = request.user
+        comparison = None
+        if user.is_authenticated and comparison_id is not None:
+            comparison = PokemonComparison.objects.get(id=comparison_id)
+            pokemon_list1 = [p.as_dict() for p in comparison.list1.all()]
+            pokemon_list2 = [p.as_dict() for p in comparison.list2.all()]
+        else:
+            pokemon_list1, pokemon_list2 = get_pokemon_lists(session)
 
-        pokemon_list1, pokemon_list2 = get_pokemon_lists(session)
+        pokemon = fetch_pokemon(pokemon_name)
 
         if pokemon_set == '1':
             pokemon_list1.append(pokemon)
@@ -79,11 +92,9 @@ def handle_comparison_post_request(request, comparison_id):
 
         Pokemon.objects.get_or_create(**pokemon)
 
-        user = request.user
-
         if user.is_authenticated:
-            comparison = PokemonComparison.objects.create(user=user)
-
+            if comparison is None:
+                comparison = PokemonComparison.objects.create(user=user)
             for p in pokemon_list1:
                 comparison.list1.add(Pokemon.objects.get(name=p['name']))
             for p in pokemon_list2:
@@ -96,6 +107,7 @@ def handle_comparison_post_request(request, comparison_id):
         messages.add_message(request, messages.ERROR, e.message)
 
     return HttpResponseRedirect(redirect_url)
+
 
 @login_required
 def handle_index_get_request(request):
@@ -114,7 +126,7 @@ def handle_index_get_request(request):
     else:
         percentage = None
 
-    return render(request, 'index.html', {
+    return render(request, 'comparison.html', {
         'pokemon_list1': pokemon_list1, 'pokemon_list2': pokemon_list2,
         'base_experience1': base_experience1,
         'base_experience2': base_experience2, 'fair': comp['fair'],

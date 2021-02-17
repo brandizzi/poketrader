@@ -1,4 +1,4 @@
-<form method="POST" action="/comparison">
+<form method="POST" action="/comparison/{{ comparison_id }}">
  {% csrf_token %}
  <input type="hidden" name="pokemon_set" value="{{ pokemon_set }}">
  {% for pokemon in pokemon_list %}

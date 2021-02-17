@@ -51,7 +51,7 @@ class ViewTestCase(TestCase):
         self.assertEqual(response.status_code, 302)
 
         self.assertTrue(
-            url, '{} not in {}'.format(url, response.url))
+            url in response.url, '{} not in {}'.format(url, response.url))
 
     @contextlib.contextmanager
     def logged_in(self):
