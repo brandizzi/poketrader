@@ -232,6 +232,29 @@ class IndexGetViewTest(ViewTestCase):
 
             self.assertEqual(len(list1), 0)
 
+    def test_get_page_lists_comparisons(self):
+        with self.logged_in() as user:
+            self.fetch_and_save_pokemon('pikachu')
+
+            comparison = PokemonComparison.objects.get(user_id=user.id)
+
+            request = self.get_post_request(
+                '/comparison/{}'.format(comparison.id), pokemon_set='1',
+                pokemon_name='charmander')
+
+            comparison_view(request, comparison.id)
+
+            self.fetch_and_save_pokemon('bulbasaur')
+
+            request = self.get_get_request('/')
+
+            response = index_view(request)
+
+            content = response.content.decode(response.charset)
+            self.assertIn('pikachu', content)
+            self.assertIn('charmander', content)
+            self.assertIn('bulbasaur', content)
+
     def test_get_page_redirect_unauthenticated(self):
         request = self.get_get_request('/')
 
