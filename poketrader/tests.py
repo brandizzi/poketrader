@@ -65,6 +65,9 @@ class ViewTestCase(TestCase):
 
             user.delete()
 
+    def get_comparison(self, user):
+        return PokemonComparison.objects.get(user=user)
+
     def _set_up_request(self, request):
         request.session = self.session
 
@@ -268,19 +271,20 @@ class ComparisonViewTest(ViewTestCase):
 class ResetViewTest(ViewTestCase):
 
     def test_reset_session(self):
-        response = self.fetch_and_save_pokemon('pikachu')
+        with self.logged_in() as user:
+            response = self.fetch_and_save_pokemon('pikachu')
 
-        list1 = self.session['pokemon_list1']
-        self.assertEqual(len(list1), 1)
+            comparison = self.get_comparison(user)
+            self.assertEqual(comparison.list1.all().count(), 1)
 
-        request = self.get_post_request('/reset', pokemon_set='1')
+            request = self.get_post_request('/reset', pokemon_set='1')
 
-        response = reset_view(request)
+            response = reset_view(request, comparison.id)
 
-        self.assertEqual(response.status_code, 302)
+            self.assertEqual(response.status_code, 302)
 
-        list1 = request.session['pokemon_list1']
-        self.assertEqual(len(list1), 0)
+            comparison = self.get_comparison(user)
+            self.assertEqual(comparison.list1.all().count(), 0)
 
 
 class RemoveViewTest(ViewTestCase):
