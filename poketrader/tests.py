@@ -98,7 +98,7 @@ class ComparisonPostViewTest(ViewTestCase):
 
         pokemons[0].delete()
 
-    def test_add_to_session(self):
+    def test_no_more_data_in_session(self):
         request = self.get_post_request(
             '/comparison', pokemon_set='1', pokemon_name='pikachu')
 
@@ -106,28 +106,16 @@ class ComparisonPostViewTest(ViewTestCase):
 
         self.assertEqual(response.status_code, 302)
 
-        list1 = request.session['pokemon_list1']
-        self.assertEqual(len(list1), 1)
+        list1 = request.session.get('pokemon_list1', [])
+        self.assertEqual(len(list1), 0)
 
-        pokemon = list1[0]
-        self.assertEqual(pokemon, {
-            'name': 'pikachu',
-            'base_experience': 112,
-            'picture_url':
-                'https://raw.githubusercontent.com/PokeAPI/'
-                'sprites/master/sprites/pokemon/25.png'
-        })
-
-    def test_add_to_session_not_found(self):
+    def test_pokemon_not_found(self):
         request = self.get_post_request(
             '/comparison', pokemon_set='1', pokemon_name='agumon')
 
         response = comparison_view(request, None)
 
         self.assertEqual(response.status_code, 302)
-
-        list1 = request.session.get('pokemon_list1', [])
-        self.assertEqual(len(list1), 0)
 
         messages_list = list(messages.get_messages(request))
 
@@ -137,20 +125,22 @@ class ComparisonPostViewTest(ViewTestCase):
             "There is no such Pokémon called \"agumon.\"")
 
     def test_index_multiple(self):
-        request = self.get_post_request(
-            '/comparison', pokemon_set='1', pokemon_name='pikachu')
-        comparison_view(request, None)
+        with self.logged_in() as user:
+            request = self.get_post_request(
+                '/comparison', pokemon_set='1', pokemon_name='pikachu')
+            comparison_view(request, None)
+            comparison = self.get_comparison(user)
 
-        request = self.get_post_request(
-            '/comparison', pokemon_set='1', pokemon_name='charmander')
-        comparison_view(request, None)
+            request = self.get_post_request(
+                '/comparison', pokemon_set='1', pokemon_name='charmander')
+            comparison_view(request, comparison.id)
 
-        request = self.get_post_request(
-            '/comparison', pokemon_set='1', pokemon_name='bulbasaur')
-        comparison_view(request, None)
+            request = self.get_post_request(
+                '/comparison', pokemon_set='1', pokemon_name='bulbasaur')
+            comparison_view(request, comparison.id)
 
-        list1 = request.session['pokemon_list1']
-        self.assertEqual(len(list1), 3)
+            comparison = self.get_comparison(user)
+            self.assertEqual(comparison.list1.all().count(), 3)
 
     def test_create_comparison_if_authenticated(self):
         with self.logged_in() as user:
@@ -253,8 +243,6 @@ class ComparisonViewTest(ViewTestCase):
     def test_get_comparison(self):
         with self.logged_in() as user:
             response = self.fetch_and_save_pokemon('pikachu')
-
-            self.session.clear()
 
             self.log_in(user)
 
