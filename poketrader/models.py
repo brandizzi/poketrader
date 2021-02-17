@@ -21,3 +21,9 @@ class PokemonComparison(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     list1 = models.ManyToManyField(Pokemon, related_name='list1')
     list2 = models.ManyToManyField(Pokemon, related_name='list2')
+
+    def as_list_of_dicts(self):
+        return (
+            [p.as_dict() for p in self.list1.all()],
+            [p.as_dict() for p in self.list2.all()]
+        )

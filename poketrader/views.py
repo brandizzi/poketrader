@@ -25,13 +25,13 @@ def comparison(request, comparison_id):
 
 
 def handle_comparison_get_request(request, comparison_id):
+    pokemon_list1 = []
+    pokemon_list2 = []
+
     if comparison_id is not None:
         comparison = get_object_or_404(PokemonComparison, id=comparison_id)
-        pokemon_list1 = [p.as_dict() for p in comparison.list1.all()]
-        pokemon_list2 = [p.as_dict() for p in comparison.list2.all()]
-    else:
-        pokemon_list1 = []
-        pokemon_list2 = []
+        pokemon_list1, pokemon_list2 = comparison.as_list_of_dicts()
+
     comp = compare_pokemon_lists(
         pokemon_list1, pokemon_list2, fairness_threshold=0.15)
 
@@ -72,38 +72,24 @@ def handle_comparison_post_request(request, comparison_id):
     pokemon_name = request.POST['pokemon_name']
     redirect_url = '/'
 
-    try:
-        user = request.user
-        comparison = None
-        if user.is_authenticated and comparison_id is not None:
-            comparison = PokemonComparison.objects.get(id=comparison_id)
-            pokemon_list1 = [p.as_dict() for p in comparison.list1.all()]
-            pokemon_list2 = [p.as_dict() for p in comparison.list2.all()]
-        else:
-            pokemon_list1 = []
-            pokemon_list2 = []
+    user = request.user
+    if comparison_id is not None:
+        comparison = get_object_or_404(PokemonComparison, id=comparison_id)
+    else:
+        comparison = PokemonComparison.objects.create(user=user)
 
-        pokemon = fetch_pokemon(pokemon_name)
+    try:
+        pokemon, _ = Pokemon.objects.get_or_create(
+            name=pokemon_name, defaults=fetch_pokemon(pokemon_name))
 
         if pokemon_set == '1':
-            pokemon_list1.append(pokemon)
+            comparison.list1.add(pokemon)
         elif pokemon_set == '2':
-            pokemon_list2.append(pokemon)
+            comparison.list2.add(pokemon)
 
+        comparison.save()
 
-        Pokemon.objects.get_or_create(**pokemon)
-
-        if user.is_authenticated:
-            if comparison is None:
-                comparison = PokemonComparison.objects.create(user=user)
-            for p in pokemon_list1:
-                comparison.list1.add(Pokemon.objects.get(name=p['name']))
-            for p in pokemon_list2:
-                comparison.list2.add(Pokemon.objects.get(name=p['name']))
-
-            comparison.save()
-
-            redirect_url = '/comparison/{}'.format(comparison.id)
+        redirect_url = '/comparison/{}'.format(comparison.id)
     except APIException as e:
         messages.add_message(request, messages.ERROR, e.message)
 
@@ -155,8 +141,10 @@ def handle_remove_post_request(request, comparison_id):
     comparison = get_object_or_404(PokemonComparison, id=comparison_id)
 
     if pokemon_set == '1':
-        comparison.list1.remove(comparison.list1.all()[index])
+        list = comparison.list1
     elif pokemon_set == '2':
-        comparison.list1.remove(comparison.list2.all()[index])
+        list = comparison.list2
 
-    return HttpResponseRedirect('/')
+    list.remove(list.all()[index])
+
+    return HttpResponseRedirect('/comparison/{}'.format(comparison_id))
