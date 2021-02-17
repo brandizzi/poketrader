@@ -36,9 +36,9 @@ def reset(request, comparison_id):
     comparison = get_object_or_404(PokemonComparison, id=comparison_id)
 
     if pokemon_set == '1':
-        comparison.list1.clear()
+        comparison.list_items1.clear()
     elif pokemon_set == '2':
-        comparison.list2.clear()
+        comparison.list_items2.clear()
 
     return HttpResponseRedirect('/comparison/{}'.format(comparison_id))
 
@@ -51,11 +51,11 @@ def remove(request, comparison_id):
     comparison = get_object_or_404(PokemonComparison, id=comparison_id)
 
     if pokemon_set == '1':
-        list = comparison.list1
+        list = comparison.list_items1
     elif pokemon_set == '2':
-        list = comparison.list2
-
-    list.remove(list.all()[index])
+        list = comparison.list_items2
+    items = list.all()
+    list.remove(items[index])
 
     return HttpResponseRedirect('/comparison/{}'.format(comparison_id))
 
@@ -119,10 +119,7 @@ def handle_comparison_post_request(request, comparison_id):
         pokemon, _ = Pokemon.objects.get_or_create(
             name=pokemon_name, defaults=fetch_pokemon(pokemon_name))
 
-        if pokemon_set == '1':
-            comparison.list1.add(pokemon)
-        elif pokemon_set == '2':
-            comparison.list2.add(pokemon)
+        comparison.add_pokemon(pokemon, int(pokemon_set))
 
         comparison.save()
     except APIException as e:
