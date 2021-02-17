@@ -1,6 +1,7 @@
 from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponse, HttpResponseRedirect
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 
 from .models import Pokemon, PokemonComparison
 from .pokemon import fetch_pokemon, compare_pokemon_lists, APIException
@@ -90,7 +91,7 @@ def handle_index_post_request(request):
 
     return HttpResponseRedirect(redirect_url)
 
-
+@login_required
 def handle_index_get_request(request):
     pokemon_list1, pokemon_list2 = get_pokemon_lists(request.session)
     comp = compare_pokemon_lists(
