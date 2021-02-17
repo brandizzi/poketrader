@@ -1,19 +1,3 @@
-def get_pokemon_lists(session):
-    """
-    Returns the two lists found in the session:
-
-    >>> l1, l2 = get_pokemon_lists({
-    ...     'pokemon_list1': ['pikachu'],
-    ...     'pokemon_list2': ['charmander']
-    ... })
-    >>> l1
-    ['pikachu']
-    >>> l2
-    ['charmander']
-    """
-    return (session.get('pokemon_list1', []), session.get('pokemon_list2', []))
-
-
 def get_best_list(base_experience1, base_experience2):
     """
     Decices which list is the best betwen the two:

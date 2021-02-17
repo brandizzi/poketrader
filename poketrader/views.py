@@ -5,7 +5,7 @@ from django.contrib.auth.decorators import login_required
 
 from .models import Pokemon, PokemonComparison
 from .pokemon import fetch_pokemon, compare_pokemon_lists, APIException
-from .utils import get_pokemon_lists, as_percent, get_best_list
+from .utils import as_percent, get_best_list
 
 
 def index(request):
@@ -64,8 +64,6 @@ def remove(request, comparison_id):
 
 
 def handle_comparison_post_request(request, comparison_id):
-    session = request.session
-
     pokemon_set = request.POST['pokemon_set']
     pokemon_name = request.POST['pokemon_name']
     redirect_url = '/'
@@ -78,7 +76,8 @@ def handle_comparison_post_request(request, comparison_id):
             pokemon_list1 = [p.as_dict() for p in comparison.list1.all()]
             pokemon_list2 = [p.as_dict() for p in comparison.list2.all()]
         else:
-            pokemon_list1, pokemon_list2 = get_pokemon_lists(session)
+            pokemon_list1 = []
+            pokemon_list2 = []
 
         pokemon = fetch_pokemon(pokemon_name)
 
@@ -87,8 +86,6 @@ def handle_comparison_post_request(request, comparison_id):
         elif pokemon_set == '2':
             pokemon_list2.append(pokemon)
 
-        session['pokemon_list1'] = pokemon_list1
-        session['pokemon_list2'] = pokemon_list2
 
         Pokemon.objects.get_or_create(**pokemon)
 
@@ -111,7 +108,7 @@ def handle_comparison_post_request(request, comparison_id):
 
 @login_required
 def handle_index_get_request(request):
-    pokemon_list1, pokemon_list2 = get_pokemon_lists(request.session)
+    pokemon_list1, pokemon_list2 = [], []
     comp = compare_pokemon_lists(
         pokemon_list1, pokemon_list2, fairness_threshold=0.15)
 
@@ -137,7 +134,6 @@ def handle_index_get_request(request):
 
 
 def handle_reset_post_request(request, comparison_id):
-    session = request.session
     pokemon_set = request.POST['pokemon_set']
     comparison = get_object_or_404(PokemonComparison, id=comparison_id)
 
@@ -150,7 +146,6 @@ def handle_reset_post_request(request, comparison_id):
 
 
 def handle_remove_post_request(request, comparison_id):
-    session = request.session
     pokemon_set = request.POST['pokemon_set']
     index = int(request.POST['index'])
     comparison = get_object_or_404(PokemonComparison, id=comparison_id)
