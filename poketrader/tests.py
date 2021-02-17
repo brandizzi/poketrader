@@ -117,7 +117,7 @@ class ComparisonPostViewTest(ViewTestCase):
 
             response = comparison_view(request, None)
 
-            self.assertEqual(response.status_code, 302)
+            self.assertRedirect(response, '/comparison')
 
             messages_list = list(messages.get_messages(request))
 
