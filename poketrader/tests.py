@@ -177,6 +177,30 @@ class ComparisonPostViewTest(ViewTestCase):
 
         self.assertEqual(len(comparisons), 0)
 
+    def test_update_comparison(self):
+        with self.logged_in() as user:
+            comparisons = PokemonComparison.objects.filter(user_id=user.id)
+
+            self.assertEqual(len(comparisons), 0)
+
+            self.fetch_and_save_pokemon('pikachu')
+
+            comparison = PokemonComparison.objects.get(user_id=user.id)
+
+            self.assertEqual(comparison.list1.all().count(), 1)
+
+            request = self.get_post_request(
+                '/comparison/{}'.format(comparison.id), pokemon_set='1',
+                pokemon_name='charmander')
+
+            comparison_view(request, comparison.id)
+
+            comparison = PokemonComparison.objects.get(user_id=user.id)
+
+            self.assertEqual(comparison.list1.all().count(), 2)
+
+            comparisons.delete()
+
     def test_redirect_id_if_authenticated(self):
         with self.logged_in() as user:
             comparisons = PokemonComparison.objects.filter(user_id=user.id)
