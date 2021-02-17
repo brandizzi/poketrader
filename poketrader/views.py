@@ -8,6 +8,7 @@ from .pokemon import fetch_pokemon, compare_pokemon_lists, APIException
 from .utils import as_percent, get_best_list
 
 
+@login_required
 def index(request):
     if request.method == 'POST':
         return handle_index_post_request(request)
@@ -15,6 +16,7 @@ def index(request):
         return handle_index_get_request(request)
 
 
+@login_required
 def comparison(request, comparison_id):
     if request.method == 'POST':
         return handle_comparison_post_request(request, comparison_id)
@@ -55,10 +57,12 @@ def handle_comparison_get_request(request, comparison_id):
     })
 
 
+@login_required
 def reset(request, comparison_id):
     return handle_reset_post_request(request, comparison_id)
 
 
+@login_required
 def remove(request, comparison_id):
     return handle_remove_post_request(request, comparison_id)
 
