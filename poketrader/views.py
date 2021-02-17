@@ -70,7 +70,6 @@ def remove(request, comparison_id):
 def handle_comparison_post_request(request, comparison_id):
     pokemon_set = request.POST['pokemon_set']
     pokemon_name = request.POST['pokemon_name']
-    redirect_url = '/'
 
     user = request.user
     if comparison_id is not None:
@@ -88,11 +87,10 @@ def handle_comparison_post_request(request, comparison_id):
             comparison.list2.add(pokemon)
 
         comparison.save()
-
-        redirect_url = '/comparison/{}'.format(comparison.id)
     except APIException as e:
         messages.add_message(request, messages.ERROR, e.message)
 
+    redirect_url = '/comparison/{}'.format(comparison.id)
     return HttpResponseRedirect(redirect_url)
 
 
