@@ -81,22 +81,23 @@ class ViewTestCase(TestCase):
 class ComparisonPostViewTest(ViewTestCase):
 
     def test_save_to_database(self):
-        pokemons = Pokemon.objects.filter(name='pikachu')
+        with self.logged_in() as user:
+            pokemons = Pokemon.objects.filter(name='pikachu')
 
-        self.assertEqual(len(pokemons), 0)
+            self.assertEqual(len(pokemons), 0)
 
-        request = self.get_post_request(
-            '/comparison', pokemon_set='1', pokemon_name='pikachu')
+            request = self.get_post_request(
+                '/comparison', pokemon_set='1', pokemon_name='pikachu')
 
-        response = comparison_view(request, None)
+            response = comparison_view(request, None)
 
-        self.assertEqual(response.status_code, 302)
+            self.assertEqual(response.status_code, 302)
 
-        pokemons = Pokemon.objects.filter(name='pikachu')
+            pokemons = Pokemon.objects.filter(name='pikachu')
 
-        self.assertEqual(len(pokemons), 1)
+            self.assertEqual(len(pokemons), 1)
 
-        pokemons[0].delete()
+            pokemons[0].delete()
 
     def test_no_more_data_in_session(self):
         request = self.get_post_request(
@@ -110,19 +111,20 @@ class ComparisonPostViewTest(ViewTestCase):
         self.assertEqual(len(list1), 0)
 
     def test_pokemon_not_found(self):
-        request = self.get_post_request(
-            '/comparison', pokemon_set='1', pokemon_name='agumon')
+        with self.logged_in() as user:
+            request = self.get_post_request(
+                '/comparison', pokemon_set='1', pokemon_name='agumon')
 
-        response = comparison_view(request, None)
+            response = comparison_view(request, None)
 
-        self.assertEqual(response.status_code, 302)
+            self.assertEqual(response.status_code, 302)
 
-        messages_list = list(messages.get_messages(request))
+            messages_list = list(messages.get_messages(request))
 
-        self.assertEqual(len(messages_list), 1)
-        self.assertEqual(
-            messages_list[0].message,
-            "There is no such Pokémon called \"agumon.\"")
+            self.assertEqual(len(messages_list), 1)
+            self.assertEqual(
+                messages_list[0].message,
+                "There is no such Pokémon called \"agumon.\"")
 
     def test_index_multiple(self):
         with self.logged_in() as user:
@@ -244,8 +246,6 @@ class ComparisonViewTest(ViewTestCase):
         with self.logged_in() as user:
             response = self.fetch_and_save_pokemon('pikachu')
 
-            self.log_in(user)
-
             comparison = PokemonComparison.objects.all().first()
 
             request = self.get_get_request(
@@ -255,6 +255,13 @@ class ComparisonViewTest(ViewTestCase):
 
             self.assertEqual(response.status_code, 200)
             self.assertIn('pikachu', response.content.decode(response.charset))
+
+    def test_get_page_redirect_unauthenticated(self):
+        request = self.get_get_request('comparison')
+
+        response = comparison_view(request, None)
+
+        self.assertRedirect(response, '/login')
 
 
 class ResetViewTest(ViewTestCase):
@@ -275,6 +282,23 @@ class ResetViewTest(ViewTestCase):
             comparison = self.get_comparison(user)
             self.assertEqual(comparison.list1.all().count(), 0)
 
+    def test_get_page_redirect_unauthenticated(self):
+        with self.logged_in() as user:
+            response = self.fetch_and_save_pokemon('pikachu')
+
+            comparison = PokemonComparison.objects.all().first()
+
+        request = self.get_get_request('comparison/{}'.format(comparison.id))
+
+        self.assertRedirect(response, '/login')
+
+    def test_get_page_redirect_unauthenticated(self):
+        request = self.get_get_request('reset/1')
+
+        response = reset_view(request, None)
+
+        self.assertRedirect(response, '/login')
+
 
 class RemoveViewTest(ViewTestCase):
 
@@ -288,7 +312,8 @@ class RemoveViewTest(ViewTestCase):
             comparison = self.get_comparison(user)
             self.assertEqual(comparison.list1.all().count(), 3)
 
-            request = self.get_post_request('/remove', pokemon_set='1', index='1')
+            request = self.get_post_request(
+                '/remove', pokemon_set='1', index='1')
 
             response = remove_view(request, comparison.id)
 
@@ -298,3 +323,10 @@ class RemoveViewTest(ViewTestCase):
             self.assertEqual(comparison.list1.all().count(), 2)
             self.assertEqual(comparison.list1.all()[0].name, 'pikachu')
             self.assertEqual(comparison.list1.all()[1].name, 'bulbasaur')
+
+    def test_get_page_redirect_unauthenticated(self):
+        request = self.get_get_request('remove/1')
+
+        response = remove_view(request, None)
+
+        self.assertRedirect(response, '/login')
