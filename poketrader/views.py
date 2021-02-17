@@ -59,8 +59,8 @@ def reset(request, comparison_id):
     return handle_reset_post_request(request, comparison_id)
 
 
-def remove(request):
-    return handle_remove_post_request(request)
+def remove(request, comparison_id):
+    return handle_remove_post_request(request, comparison_id)
 
 
 def handle_comparison_post_request(request, comparison_id):
@@ -149,11 +149,15 @@ def handle_reset_post_request(request, comparison_id):
     return HttpResponseRedirect('/comparison/{}'.format(comparison_id))
 
 
-def handle_remove_post_request(request):
+def handle_remove_post_request(request, comparison_id):
     session = request.session
     pokemon_set = request.POST['pokemon_set']
-    pokemon_list = session.get('pokemon_list' + pokemon_set, [])
     index = int(request.POST['index'])
-    del pokemon_list[index]
-    session['pokemon_list' + pokemon_set] = pokemon_list
+    comparison = get_object_or_404(PokemonComparison, id=comparison_id)
+
+    if pokemon_set == '1':
+        comparison.list1.remove(comparison.list1.all()[index])
+    elif pokemon_set == '2':
+        comparison.list1.remove(comparison.list2.all()[index])
+
     return HttpResponseRedirect('/')

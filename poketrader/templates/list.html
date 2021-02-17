@@ -1,6 +1,6 @@
 <h4 class="text-center mt-2"><strong>Base experience:</strong> {{base_experience}}</h4>
 {% for pokemon in pokemon_list %}
-<form action="/remove" method="POST">
+<form action="/remove/{{ comparison_id }}" method="POST">
 {% csrf_token %}
 <input type="hidden" name="pokemon_set" value="{{pokemon_set}}">
 <input type="hidden" name="index" value="{{forloop.counter0}}">
