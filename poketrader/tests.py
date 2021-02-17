@@ -1,3 +1,5 @@
+import contextlib
+
 from django.test import TestCase, RequestFactory
 from django.contrib.auth.models import User, AnonymousUser
 from django.contrib.messages.middleware import MessageMiddleware
@@ -50,6 +52,18 @@ class ViewTestCase(TestCase):
 
         self.assertTrue(
             url, '{} not in {}'.format(url, response.url))
+
+    @contextlib.contextmanager
+    def logged_in(self):
+        user = User.objects.create(username='test')
+
+        try:
+            self.log_in(user)
+            yield user
+        finally:
+            self.log_out()
+
+            user.delete()
 
     def _set_up_request(self, request):
         request.session = self.session
@@ -135,27 +149,20 @@ class IndexPostViewTest(ViewTestCase):
         self.assertEqual(len(list1), 3)
 
     def test_create_comparison_if_authenticated(self):
-        user = User.objects.create(username='test')
+        with self.logged_in() as user:
+            comparisons = PokemonComparison.objects.filter(user_id=user.id)
 
-        self.log_in(user)
+            self.assertEqual(len(comparisons), 0)
 
-        comparisons = PokemonComparison.objects.filter(user_id=user.id)
+            response = self.fetch_and_save_pokemon('pikachu')
 
-        self.assertEqual(len(comparisons), 0)
+            self.assertEqual(response.status_code, 302)
 
-        response = self.fetch_and_save_pokemon('pikachu')
+            comparisons = PokemonComparison.objects.filter(user_id=user.id)
 
-        self.assertEqual(response.status_code, 302)
+            self.assertEqual(len(comparisons), 1)
 
-        comparisons = PokemonComparison.objects.filter(user_id=user.id)
-
-        self.assertEqual(len(comparisons), 1)
-
-        comparisons[0].delete()
-
-        self.log_out()
-
-        user.delete()
+            comparisons[0].delete()
 
     def test_do_not_create_comparison_if_not_authenticated(self):
         comparisons = PokemonComparison.objects.all()
@@ -171,72 +178,67 @@ class IndexPostViewTest(ViewTestCase):
         self.assertEqual(len(comparisons), 0)
 
     def test_redirect_id_if_authenticated(self):
-        user = User.objects.create(username='test')
+        with self.logged_in() as user:
+            comparisons = PokemonComparison.objects.filter(user_id=user.id)
 
-        self.log_in(user)
+            self.assertEqual(len(comparisons), 0)
 
-        comparisons = PokemonComparison.objects.filter(user_id=user.id)
+            response = self.fetch_and_save_pokemon('pikachu')
 
-        self.assertEqual(len(comparisons), 0)
+            comparisons = PokemonComparison.objects.filter(user_id=user.id)
 
-        response = self.fetch_and_save_pokemon('pikachu')
+            self.assertEquals(len(comparisons), 1)
 
-        comparisons = PokemonComparison.objects.filter(user_id=user.id)
+            comparison = comparisons[0]
 
-        self.assertEquals(len(comparisons), 1)
+            expected_path = '/comparison/{}'.format(comparison.id)
 
-        comparison = comparisons[0]
+            self.assertRedirect(response, expected_path)
 
-        expected_path = '/comparison/{}'.format(comparison.id)
-
-        self.assertRedirect(response, expected_path)
-
-        comparisons[0].delete()
-
-        self.log_out()
-
-        user.delete()
+            comparisons[0].delete()
 
 
 class IndexGetViewTest(ViewTestCase):
 
     def test_get_page(self):
+        with self.logged_in() as user:
+            request = self.get_get_request('/')
+
+            response = index_view(request)
+
+            self.assertEqual(response.status_code, 200)
+
+            list1 = request.session.get('pokemon_list1', [])
+
+            self.assertEqual(len(list1), 0)
+
+    def test_get_page_redirect_unauthenticated(self):
         request = self.get_get_request('/')
 
         response = index_view(request)
 
-        self.assertEqual(response.status_code, 200)
-
-        list1 = request.session.get('pokemon_list1', [])
-
-        self.assertEqual(len(list1), 0)
+        self.assertRedirect(response, '/login')
 
 
 class ComparisonViewTest(ViewTestCase):
 
     def test_get_comparison(self):
-        user = User.objects.create(username='test')
+        with self.logged_in() as user:
+            response = self.fetch_and_save_pokemon('pikachu')
 
-        self.log_in(user)
+            self.session.clear()
 
-        response = self.fetch_and_save_pokemon('pikachu')
+            self.log_in(user)
 
-        self.session.clear()
+            comparison = PokemonComparison.objects.all().first()
 
-        self.log_in(user)
+            request = self.get_get_request(
+                'comparison/{}'.format(comparison.id))
 
-        comparison = PokemonComparison.objects.all().first()
+            response = comparison_view(request, comparison.id)
 
-        request = self.get_get_request('comparison/{}'.format(comparison.id))
-
-        response = comparison_view(request, comparison.id)
-
-        self.assertEqual(response.status_code, 200)
-        self.assertIn('pikachu', response.content.decode(response.charset))
-
-        self.log_out()
-
-        user.delete()
+            self.assertEqual(response.status_code, 200)
+            self.assertIn('pikachu', response.content.decode(response.charset))
 
 
 class ResetViewTest(ViewTestCase):
