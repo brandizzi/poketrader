@@ -22,6 +22,7 @@ urlpatterns = [
         name="comparison"),
     path("reset/<int:comparison_id>", poketrader.views.reset, name="reset"),
     path("remove/<int:comparison_id>", poketrader.views.remove, name="remove"),
+    path("delete/<int:comparison_id>", poketrader.views.delete, name="delete"),
     path('login/', LoginView.as_view(), name="login"),
     path('logout/', LogoutView.as_view(), name="logout"),
     path("admin/", admin.site.urls)

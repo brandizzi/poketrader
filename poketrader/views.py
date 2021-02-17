@@ -60,6 +60,18 @@ def remove(request, comparison_id):
     return HttpResponseRedirect('/comparison/{}'.format(comparison_id))
 
 
+@login_required
+@require_POST
+def delete(request, comparison_id):
+    comparison = get_object_or_404(PokemonComparison, id=comparison_id)
+    comparison.delete()
+
+    messages.add_message(
+        request, messages.INFO, 'Comparison deleted.', extra_tags='success')
+
+    return HttpResponseRedirect('/')
+
+
 def handle_comparison_get_request(request, comparison_id):
     pokemon_list1 = []
     pokemon_list2 = []
@@ -114,7 +126,8 @@ def handle_comparison_post_request(request, comparison_id):
 
         comparison.save()
     except APIException as e:
-        messages.add_message(request, messages.ERROR, e.message)
+        messages.add_message(
+            request, messages.ERROR, e.message, extra_tags='danger')
 
     redirect_url = '/comparison/{}'.format(comparison.id)
     return HttpResponseRedirect(redirect_url)
