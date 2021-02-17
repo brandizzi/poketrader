@@ -20,7 +20,7 @@ urlpatterns = [
     path(
         "comparison/<int:comparison_id>", poketrader.views.comparison,
         name="comparison"),
-    path("reset", poketrader.views.reset, name="reset"),
+    path("reset/<int:comparison_id>", poketrader.views.reset, name="reset"),
     path("remove", poketrader.views.remove, name="remove"),
     path('login/', LoginView.as_view(), name="login"),
     path('logout/', LogoutView.as_view(), name="logout"),

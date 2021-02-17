@@ -1,5 +1,7 @@
-<form method="POST" action="/reset">
- {% csrf_token %}
- <input type="hidden" name="pokemon_set" value="{{ pokemon_set }}">
- <input type="submit" value="Reset">
-</form>
+{% if pokemon_list %}
+ <form method="POST" action="/reset/{{ comparison_id }}">
+  {% csrf_token %}
+  <input type="hidden" name="pokemon_set" value="{{ pokemon_set }}">
+  <input type="submit" value="Reset">
+ </form>
+{% endif %}
