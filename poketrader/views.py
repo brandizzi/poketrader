@@ -98,28 +98,10 @@ def handle_comparison_post_request(request, comparison_id):
 
 @login_required
 def handle_index_get_request(request):
-    pokemon_list1, pokemon_list2 = [], []
-    comp = compare_pokemon_lists(
-        pokemon_list1, pokemon_list2, fairness_threshold=0.15)
+    comparisons = PokemonComparison.objects.filter(user=request.user)
 
-    base_experience1 = comp['base_experience1']
-    base_experience2 = comp['base_experience2']
-    success = comp['success']
-    difference = abs(comp['difference'])
-
-    if success:
-        unfairness = abs(comp['unfairness'])
-        percentage = as_percent(unfairness)
-    else:
-        percentage = None
-
-    return render(request, 'comparison.html', {
-        'pokemon_list1': pokemon_list1, 'pokemon_list2': pokemon_list2,
-        'base_experience1': base_experience1,
-        'base_experience2': base_experience2, 'fair': comp['fair'],
-        'difference': difference,
-        'best_list': get_best_list(base_experience1, base_experience2),
-        'percentage': percentage, 'success': success
+    return render(request, 'index.html', {
+        'comparisons': comparisons
     })
 
 

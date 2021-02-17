@@ -27,3 +27,9 @@ class PokemonComparison(models.Model):
             [p.as_dict() for p in self.list1.all()],
             [p.as_dict() for p in self.list2.all()]
         )
+
+    def list1_as_string(self):
+        return ", ".join(p.name for p in self.list1.all())
+
+    def list2_as_string(self):
+        return ", ".join(p.name for p in self.list2.all())
