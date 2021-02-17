@@ -3,6 +3,9 @@
 
 {% block content %}
 <div class="container">
+ <div class="toolbar">
+  <a class="small" href="/">&lt; Back to comparison listing</a>
+ </div>
  {% if messages %}
  <div class="messages">
   {% for message in messages %}
@@ -60,6 +63,9 @@
   <div class="col">
    {% include 'reset.html' with pokemon_list=pokemon_list2 pokemon_set='2' %}
   </div>
+ </div>
+ <div class="toolbar">
+  <a class="small" href="/">&lt; Back to comparison listing</a>
  </div>
 </div>
 {% endblock %}
